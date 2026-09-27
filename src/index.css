@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html.dark,
+  :root.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    font-family: 'Hind Siliguri', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  html.dark body {
+    background-color: #090d16;
+    color: #f1f5f9;
+  }
+
+  /* Accessibility Font Size Controls */
+  html.font-size-decreased {
+    font-size: 87.5%; /* 14px base */
+  }
+
+  html.font-size-normal {
+    font-size: 100%; /* 16px standard base */
+  }
+
+  html.font-size-increased {
+    font-size: 112.5%; /* 18px enhanced readability base */
+  }
+
+  /* Theme Style Accents (Normal/Clean, Colorful Normal, Colorful Premium) */
+  body.theme-normal-clean {
+    --accent-emerald: #0f766e;
+    --accent-indigo: #475569;
+  }
+
+  body.theme-colorful-normal {
+    --accent-emerald: #059669;
+    --accent-indigo: #4f46e5;
+  }
+
+  body.theme-colorful-premium {
+    --accent-emerald: #10b981;
+    --accent-indigo: #6366f1;
+  }
+}
+
+/* High-contrast dark mode custom scrollbar */
+.dark ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #0b1120;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-invoice, #printable-invoice * {
+    visibility: visible;
+  }
+  #printable-invoice {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 20px;
+    background: white !important;
+    color: black !important;
+  }
+}

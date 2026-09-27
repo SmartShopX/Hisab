@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="bn">
+  <head>
+    <script>
+      // Gracefully handle Vite development HMR in iframe/proxy environments where port 24678 is unreachable
+      (function() {
+        // 1. Mock WebSocket for vite-hmr to prevent connection failures to unmapped ports
+        try {
+          const NativeWebSocket = window.WebSocket;
+          if (NativeWebSocket) {
+            function MockHmrWebSocket(url, protocols) {
+              const isViteHmr =
+                (typeof protocols === 'string' && protocols.includes('vite-hmr')) ||
+                (Array.isArray(protocols) && protocols.includes('vite-hmr')) ||
+                (typeof url === 'string' && (url.includes('24678') || url.includes('token=')));
+
+              if (isViteHmr) {
+                const emitter = new EventTarget();
+                const self = {
+                  CONNECTING: 0,
+                  OPEN: 1,
+                  CLOSING: 2,
+                  CLOSED: 3,
+                  readyState: 1,
+                  protocol: 'vite-hmr',
+                  url: String(url),
+                  bufferedAmount: 0,
+                  extensions: '',
+                  binaryType: 'blob',
+                  send: function() {},
+                  close: function() {
+                    self.readyState = 3;
+                  },
+                  addEventListener: function(type, listener, options) {
+                    emitter.addEventListener(type, listener, options);
+                  },
+                  removeEventListener: function(type, listener, options) {
+                    emitter.removeEventListener(type, listener, options);
+                  },
+                  dispatchEvent: function(event) {
+                    return emitter.dispatchEvent(event);
+                  },
+                  onopen: null,
+                  onclose: null,
+                  onerror: null,
+                  onmessage: null,
+                };
+                queueMicrotask(() => {
+                  const ev = new Event('open');
+                  self.dispatchEvent(ev);
+                  if (typeof self.onopen === 'function') self.onopen(ev);
+                });
+                return self;
+              }
+              return new NativeWebSocket(url, protocols);
+            }
+            MockHmrWebSocket.prototype = NativeWebSocket.prototype;
+            MockHmrWebSocket.CONNECTING = 0;
+            MockHmrWebSocket.OPEN = 1;
+            MockHmrWebSocket.CLOSING = 2;
+            MockHmrWebSocket.CLOSED = 3;
+            window.WebSocket = MockHmrWebSocket;
+          }
+        } catch (_) {}
+
+        // 2. Suppress benign Vite connection warnings in development
+        try {
+          const _origConsoleError = console.error;
+          console.error = function(...args) {
+            const hasViteIssue = args.some(arg =>
+              typeof arg === 'string' &&
+              (arg.includes('[vite]') || arg.includes('vite-hmr') || arg.includes('failed to connect to websocket'))
+            );
+            if (hasViteIssue) {
+              console.debug(...args);
+              return;
+            }
+            _origConsoleError.apply(console, args);
+          };
+
+          window.addEventListener('unhandledrejection', function(event) {
+            const reason = event && event.reason;
+            const msg = (reason && (reason.message || reason.stack || String(reason))) || '';
+            if (msg.includes('[vite]') || msg.includes('WebSocket closed without opened') || msg.includes('vite-hmr')) {
+              event.preventDefault();
+              event.stopImmediatePropagation();
+            }
+          }, true);
+        } catch (_) {}
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Hisab - আধুনিক ব্যবসা ব্যবস্থাপনা ও ক্লাউড পিওএস</title>
+    <meta name="description" content="স্মার্ট হিসাব - ক্ষুদ্র ও মাঝারি ব্যবসার জন্য আধুনিক ক্লাউড পিওএস ও বিজনেস ম্যানেজমেন্ট ওয়েব অ্যাপ্লিকেশন" />
+    <meta property="og:title" content="Smart Hisab - আধুনিক ব্যবসা ব্যবস্থাপনা ও ক্লাউড পিওএস" />
+    <meta property="og:description" content="স্মার্ট হিসাব - ক্ষুদ্র ও মাঝারি ব্যবসার জন্য আধুনিক ক্লাউড পিওএস ও বিজনেস ম্যানেজমেন্ট ওয়েব অ্যাপ্লিকেশন" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#059669" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Smart Hisab" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  </head>
+  <body class="font-sans antialiased bg-slate-50 text-slate-900 selection:bg-emerald-500 selection:text-white">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
